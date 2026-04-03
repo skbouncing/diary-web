@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>나의 일기장</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Serif+KR:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ── 변수 ── */
+      :root {
+        --cream: #faf6f0;
+        --paper: #fffdf8;
+        --ink: #2c2416;
+        --ink-light: #7a6a52;
+        --accent: #b5541c;
+        --rule: #e8dfd0;
+        --shadow: rgba(44, 36, 22, 0.12);
+        --mood-happy: #f5a623;
+        --mood-normal: #7ec8a4;
+        --mood-sad: #6baed6;
+        --mood-angry: #e05c5c;
+        --mood-tired: #a68fc8;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--cream);
+        font-family: "Noto Serif KR", serif;
+        color: var(--ink);
+        min-height: 100vh;
+        background-image:
+          radial-gradient(ellipse at 20% 10%, #f0e6d3 0%, transparent 50%),
+          radial-gradient(ellipse at 80% 90%, #e8dfd0 0%, transparent 50%);
+      }
+
+      /* ── 레이아웃 ── */
+      .app {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 48px 24px;
+      }
+
+      /* ── 헤더 ── */
+      header {
+        text-align: center;
+        margin-bottom: 48px;
+        position: relative;
+      }
+      header::after {
+        content: "";
+        display: block;
+        width: 80px;
+        height: 2px;
+        background: var(--accent);
+        margin: 18px auto 0;
+      }
+      .header-date {
+        font-size: 13px;
+        letter-spacing: 0.15em;
+        color: var(--ink-light);
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+      h1 {
+        font-family: "Nanum Myeongjo", serif;
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+      }
+      h1 span {
+        color: var(--accent);
+      }
+
+      /* ── 버튼 ── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.2s;
+      }
+      .btn-primary {
+        background: var(--ink);
+        color: var(--cream);
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+      .btn-primary:hover {
+        background: var(--accent);
+        transform: translateY(-1px);
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--ink-light);
+        padding: 8px 14px;
+        font-size: 13px;
+        border: 1px solid var(--rule);
+      }
+      .btn-ghost:hover {
+        border-color: var(--ink);
+        color: var(--ink);
+      }
+      .btn-danger {
+        background: transparent;
+        color: #c0392b;
+        padding: 8px 14px;
+        font-size: 13px;
+        border: 1px solid #f5c6c6;
+      }
+      .btn-danger:hover {
+        background: #c0392b;
+        color: #fff;
+      }
+
+      /* ── 새 일기 버튼 ── */
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+      }
+      .toolbar h2 {
+        font-family: "Nanum Myeongjo", serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--ink-light);
+      }
+
+      /* ── 일기 카드 목록 ── */
+      #entry-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .entry-card {
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        padding: 24px 28px;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.25s;
+        box-shadow: 0 2px 8px var(--shadow);
+      }
+      .entry-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 24px var(--shadow);
+        border-color: #d4c9b8;
+      }
+      .entry-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--mood-color, var(--rule));
+      }
+      .card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .card-title {
+        font-family: "Nanum Myeongjo", serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        line-height: 1.4;
+        flex: 1;
+      }
+      .mood-badge {
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+      .card-preview {
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--ink-light);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .card-date {
+        font-size: 12px;
+        color: #b0a090;
+        margin-top: 12px;
+        letter-spacing: 0.05em;
+      }
+      .card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .entry-card:hover .card-actions {
+        opacity: 1;
+      }
+
+      /* ── 빈 상태 ── */
+      .empty-state {
+        text-align: center;
+        padding: 64px 24px;
+        color: var(--ink-light);
+      }
+      .empty-state .icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+      }
+      .empty-state p {
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      /* ── 모달 오버레이 ── */
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(44, 36, 22, 0.5);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      .overlay.open {
+        opacity: 1;
+        pointer-events: all;
+      }
+
+      /* ── 모달 패널 ── */
+      .modal {
+        background: var(--paper);
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 36px 40px;
+        border: 1px solid var(--rule);
+        box-shadow: 0 24px 64px rgba(44, 36, 22, 0.25);
+        transform: translateY(20px);
+        transition: transform 0.3s;
+        position: relative;
+      }
+      .overlay.open .modal {
+        transform: translateY(0);
+      }
+
+      .modal-title {
+        font-family: "Nanum Myeongjo", serif;
+        font-size: 1.4rem;
+        font-weight: 800;
+        margin-bottom: 24px;
+      }
+      .modal-close {
+        position: absolute;
+        top: 16px;
+        right: 20px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 22px;
+        color: var(--ink-light);
+        line-height: 1;
+      }
+      .modal-close:hover {
+        color: var(--ink);
+      }
+
+      /* ── 폼 ── */
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        color: var(--ink-light);
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      input[type="text"],
+      textarea,
+      select {
+        width: 100%;
+        background: var(--cream);
+        border: 1px solid var(--rule);
+        padding: 12px 14px;
+        font-family: "Noto Serif KR", serif;
+        font-size: 15px;
+        color: var(--ink);
+        outline: none;
+        transition: border-color 0.2s;
+        -webkit-appearance: none;
+      }
+      input[type="text"]:focus,
+      textarea:focus,
+      select:focus {
+        border-color: var(--ink);
+      }
+      textarea {
+        min-height: 200px;
+        resize: vertical;
+        line-height: 1.8;
+      }
+
+      /* ── 기분 선택 ── */
+      .mood-picker {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .mood-btn {
+        padding: 8px 16px;
+        border: 1px solid var(--rule);
+        background: var(--cream);
+        cursor: pointer;
+        font-size: 13px;
+        font-family: inherit;
+        color: var(--ink-light);
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .mood-btn:hover {
+        border-color: var(--ink);
+        color: var(--ink);
+      }
+      .mood-btn.selected {
+        background: var(--ink);
+        color: var(--cream);
+        border-color: var(--ink);
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid var(--rule);
+      }
+
+      /* ── 상세 보기 ── */
+      .detail-meta {
+        font-size: 13px;
+        color: var(--ink-light);
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--rule);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .detail-content {
+        font-size: 15px;
+        line-height: 2;
+        white-space: pre-wrap;
+      }
+      .detail-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid var(--rule);
+      }
+
+      /* ── 로딩 / 토스트 ── */
+      .toast {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        background: var(--ink);
+        color: var(--cream);
+        padding: 14px 22px;
+        font-size: 14px;
+        box-shadow: 0 8px 24px var(--shadow);
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s;
+        z-index: 200;
+        pointer-events: none;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .toast.error {
+        background: #c0392b;
+      }
+
+      @media (max-width: 520px) {
+        .modal {
+          padding: 28px 20px;
+        }
+        .toolbar {
+          flex-direction: column;
+          gap: 14px;
+          align-items: stretch;
+        }
+        .btn-primary {
+          text-align: center;
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <p class="header-date" id="today-date"></p>
+        <h1>나의 <span>일기장</span></h1>
+      </header>
+
+      <div class="toolbar">
+        <h2>모든 일기</h2>
+        <button class="btn btn-primary" onclick="openWrite()">
+          ✏️ 새 일기 쓰기
+        </button>
+      </div>
+
+      <div id="entry-list">
+        <div class="empty-state">
+          <div class="icon">📖</div>
+          <p>불러오는 중...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 작성 / 수정 모달 ── -->
+    <div class="overlay" id="write-overlay" onclick="closeWrite(event)">
+      <div class="modal">
+        <button class="modal-close" onclick="closeWrite()">×</button>
+        <h2 class="modal-title" id="write-title">새 일기 쓰기</h2>
+
+        <div class="form-group">
+          <label>제목</label>
+          <input
+            type="text"
+            id="f-title"
+            placeholder="오늘의 제목을 써주세요"
+            maxlength="200"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>기분</label>
+          <div class="mood-picker" id="mood-picker">
+            <button
+              class="mood-btn selected"
+              data-mood="보통"
+              onclick="selectMood(this)"
+            >
+              😐 보통
+            </button>
+            <button
+              class="mood-btn"
+              data-mood="행복"
+              onclick="selectMood(this)"
+            >
+              😊 행복
+            </button>
+            <button
+              class="mood-btn"
+              data-mood="슬픔"
+              onclick="selectMood(this)"
+            >
+              😢 슬픔
+            </button>
+            <button
+              class="mood-btn"
+              data-mood="화남"
+              onclick="selectMood(this)"
+            >
+              😠 화남
+            </button>
+            <button
+              class="mood-btn"
+              data-mood="피곤"
+              onclick="selectMood(this)"
+            >
+              😴 피곤
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>내용</label>
+          <textarea
+            id="f-content"
+            placeholder="오늘 있었던 일을 자유롭게 써보세요..."
+          ></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-ghost" onclick="closeWrite()">취소</button>
+          <button class="btn btn-primary" onclick="saveEntry()">💾 저장</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 상세 보기 모달 ── -->
+    <div class="overlay" id="detail-overlay" onclick="closeDetail(event)">
+      <div class="modal">
+        <button class="modal-close" onclick="closeDetail()">×</button>
+        <div class="detail-meta">
+          <span id="d-date"></span>
+          <span id="d-mood"></span>
+        </div>
+        <h2 class="modal-title" id="d-title"></h2>
+        <div class="detail-content" id="d-content"></div>
+        <div class="detail-actions">
+          <button class="btn btn-ghost" onclick="editCurrent()">✏️ 수정</button>
+          <button class="btn btn-danger" onclick="deleteCurrent()">
+            🗑 삭제
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 토스트 ── -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+      const API = "http://localhost:8000";
+
+      let entries = [];
+      let editId = null;
+      let detailId = null;
+      let selectedMood = "보통";
+
+      const MOOD_EMOJI = {
+        행복: "😊",
+        보통: "😐",
+        슬픔: "😢",
+        화남: "😠",
+        피곤: "😴",
+      };
+      const MOOD_COLOR = {
+        행복: "#f5a623",
+        보통: "#7ec8a4",
+        슬픔: "#6baed6",
+        화남: "#e05c5c",
+        피곤: "#a68fc8",
+      };
+
+      /* ── 날짜 포맷 ── */
+      function formatDate(iso) {
+        const d = new Date(iso);
+        return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+      }
+
+      /* ── 오늘 날짜 표시 ── */
+      (function () {
+        const d = new Date();
+        const days = ["일", "월", "화", "수", "목", "금", "토"];
+        document.getElementById("today-date").textContent =
+          `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, "0")}. ${String(d.getDate()).padStart(2, "0")} ${days[d.getDay()]}요일`;
+      })();
+
+      /* ── 토스트 ── */
+      function showToast(msg, isError = false) {
+        const el = document.getElementById("toast");
+        el.textContent = msg;
+        el.className = "toast show" + (isError ? " error" : "");
+        setTimeout(() => {
+          el.className = "toast";
+        }, 2800);
+      }
+
+      /* ── API 호출 ── */
+      async function apiFetch(path, options = {}) {
+        const res = await fetch(API + path, {
+          headers: { "Content-Type": "application/json" },
+          ...options,
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `오류: ${res.status}`);
+        }
+        if (res.status === 204) return null;
+        return res.json();
+      }
+
+      /* ── 목록 렌더 ── */
+      async function loadEntries() {
+        try {
+          entries = await apiFetch("/entries");
+          renderList();
+        } catch (e) {
+          document.getElementById("entry-list").innerHTML = `
+      <div class="empty-state">
+        <div class="icon">⚠️</div>
+        <p>서버에 연결할 수 없어요.<br><small>${e.message}</small></p>
+      </div>`;
+        }
+      }
+
+      function renderList() {
+        const el = document.getElementById("entry-list");
+        if (!entries.length) {
+          el.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">📖</div>
+        <p>아직 작성된 일기가 없어요.<br>오늘의 이야기를 기록해 보세요.</p>
+      </div>`;
+          return;
+        }
+        el.innerHTML = entries
+          .map(
+            (e) => `
+    <div class="entry-card" style="--mood-color:${MOOD_COLOR[e.mood] || "#ccc"}"
+         onclick="openDetail(${e.id})">
+      <div class="card-head">
+        <div class="card-title">${escHtml(e.title)}</div>
+        <div class="mood-badge">${MOOD_EMOJI[e.mood] || "😐"}</div>
+      </div>
+      <div class="card-preview">${escHtml(e.content)}</div>
+      <div class="card-date">${formatDate(e.created_at)}</div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-ghost" onclick="openEdit(${e.id})">✏️ 수정</button>
+        <button class="btn btn-danger" onclick="confirmDelete(${e.id})">🗑 삭제</button>
+      </div>
+    </div>
+  `,
+          )
+          .join("");
+      }
+
+      function escHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      /* ── 기분 선택 ── */
+      function selectMood(btn) {
+        document
+          .querySelectorAll(".mood-btn")
+          .forEach((b) => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        selectedMood = btn.dataset.mood;
+      }
+
+      /* ── 작성 모달 ── */
+      function openWrite() {
+        editId = null;
+        selectedMood = "보통";
+        document.getElementById("write-title").textContent = "새 일기 쓰기";
+        document.getElementById("f-title").value = "";
+        document.getElementById("f-content").value = "";
+        document.querySelectorAll(".mood-btn").forEach((b) => {
+          b.classList.toggle("selected", b.dataset.mood === "보통");
+        });
+        document.getElementById("write-overlay").classList.add("open");
+        setTimeout(() => document.getElementById("f-title").focus(), 300);
+      }
+
+      function openEdit(id) {
+        const e = entries.find((x) => x.id === id);
+        if (!e) return;
+        editId = id;
+        selectedMood = e.mood;
+        document.getElementById("write-title").textContent = "일기 수정";
+        document.getElementById("f-title").value = e.title;
+        document.getElementById("f-content").value = e.content;
+        document.querySelectorAll(".mood-btn").forEach((b) => {
+          b.classList.toggle("selected", b.dataset.mood === e.mood);
+        });
+        document.getElementById("write-overlay").classList.add("open");
+        closeDetail();
+      }
+
+      function closeWrite(e) {
+        if (e && e.target !== document.getElementById("write-overlay")) return;
+        document.getElementById("write-overlay").classList.remove("open");
+      }
+
+      /* ── 저장 ── */
+      async function saveEntry() {
+        const title = document.getElementById("f-title").value.trim();
+        const content = document.getElementById("f-content").value.trim();
+        if (!title) {
+          showToast("제목을 입력해 주세요", true);
+          return;
+        }
+        if (!content) {
+          showToast("내용을 입력해 주세요", true);
+          return;
+        }
+        const body = JSON.stringify({ title, content, mood: selectedMood });
+        try {
+          if (editId) {
+            await apiFetch(`/entries/${editId}`, { method: "PUT", body });
+            showToast("✅ 일기가 수정되었습니다");
+          } else {
+            await apiFetch("/entries", { method: "POST", body });
+            showToast("✅ 일기가 저장되었습니다");
+          }
+          document.getElementById("write-overlay").classList.remove("open");
+          loadEntries();
+        } catch (err) {
+          showToast(err.message, true);
+        }
+      }
+
+      /* ── 상세 보기 ── */
+      function openDetail(id) {
+        const e = entries.find((x) => x.id === id);
+        if (!e) return;
+        detailId = id;
+        document.getElementById("d-date").textContent = formatDate(
+          e.created_at,
+        );
+        document.getElementById("d-mood").textContent =
+          `${MOOD_EMOJI[e.mood]} ${e.mood}`;
+        document.getElementById("d-title").textContent = e.title;
+        document.getElementById("d-content").textContent = e.content;
+        document.getElementById("detail-overlay").classList.add("open");
+      }
+
+      function closeDetail(e) {
+        if (e && e.target !== document.getElementById("detail-overlay")) return;
+        document.getElementById("detail-overlay").classList.remove("open");
+      }
+
+      function editCurrent() {
+        if (detailId) openEdit(detailId);
+      }
+      async function deleteCurrent() {
+        if (detailId) await confirmDelete(detailId);
+      }
+
+      /* ── 삭제 ── */
+      async function confirmDelete(id) {
+        if (!confirm("정말 삭제하시겠어요?")) return;
+        try {
+          await apiFetch(`/entries/${id}`, { method: "DELETE" });
+          showToast("🗑 일기가 삭제되었습니다");
+          document.getElementById("detail-overlay").classList.remove("open");
+          loadEntries();
+        } catch (err) {
+          showToast(err.message, true);
+        }
+      }
+
+      /* ── ESC 닫기 ── */
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          document.getElementById("write-overlay").classList.remove("open");
+          document.getElementById("detail-overlay").classList.remove("open");
+        }
+      });
+
+      /* ── 초기 로드 ── */
+      loadEntries();
+    </script>
+  </body>
+</html>
